@@ -2,7 +2,7 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 
-void shuffle(int *x, int n, int seed)
+gsl_rng *shuffle(int *x, int n, int seed)
 {
     /*
      * Shuffle the n elements of the integer array x in place.
@@ -21,6 +21,13 @@ void shuffle(int *x, int n, int seed)
      *        with the time so different random number sequences and therefore
      *        shuffles are produced each time the program is run.
      *
+     * Returns
+     * -------
+     *
+     *  r : gsl_rng *r;  A pointer to the random number generator's internal 
+     *      state.  Can be passed to shuffle_free() to free the memory used 
+     *      when no longer requited. 
+     *
      * Your program will need to be linked with -lgsl -lgslcblas -lm
      * For example:
      *
@@ -30,7 +37,7 @@ void shuffle(int *x, int n, int seed)
      * This is just a convenient wrapper of the GSL gsl_ran_shuffle.
      */
 
-    const gsl_rng_type * T;
+    const gsl_rng_type *T;
     static gsl_rng *r = NULL;
 
     if (r == NULL) {
@@ -45,5 +52,23 @@ void shuffle(int *x, int n, int seed)
     }
 
     gsl_ran_shuffle(r, x, n, sizeof(int));
-    return;
+    return r;
 }
+
+
+void free_shuffle(gsl_rng *r)
+{
+    /* 
+     *  Free the memeroy allocted by the suffle radnom number generator.
+     *  
+     *   Parameters
+     *   ----------
+     *
+     *   r : pointer to a gsl_rng structure returned by shuuffle().
+     */
+
+     free(r->state);
+     free(r);
+     return;
+}
+

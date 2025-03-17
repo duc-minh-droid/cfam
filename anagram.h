@@ -52,4 +52,6 @@ int get_index(int *x, int num, int n);
 // Frees all allocated memory in the linked list
 void free_anagram_list(nodePrimary *head);
 
+nodePrimary *make_anagram_list(char **words, int size);
+
 #endif

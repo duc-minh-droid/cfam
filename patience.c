@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "patience.h"
-#include "shuffle/shuffle.h"
+#include "shuffle.h"
 #include "histogram.h"
 
 int draw_from_deck(Deck* deck) {
