@@ -1,0 +1,9 @@
+  9  8                        Cards don't add to 11; will start a new pile with 2
+  9  8  2                     9 and 2 add to 11; will cover with 7 and 2
+  7  8  2                     Cards don't add to 11; will start a new pile with 2
+  7  8  2  2                  Cards don't add to 11; will start a new pile with 12
+  7  8  2  2 12               Cards don't add to 11; will start a new pile with 6
+  7  8  2  2 12  6            Cards don't add to 11; will start a new pile with 7
+  7  8  2  2 12  6  7         Cards don't add to 11; will start a new pile with 7
+  7  8  2  2 12  6  7  7      Cards don't add to 11; will start a new pile with 4
+  7  8  2  2 12  6  7  7  4   Game ended with 9 piles

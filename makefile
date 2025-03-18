@@ -1,20 +1,26 @@
+utils.o: utils.c utils.h
+	gcc -std=c17 -c utils.c -o utils.o
+
 histogram: histogram.c
 	gcc -std=c17 histogram.c -o histogram
 
 demo_histogram: demo_histogram.c histogram.c
 	gcc -std=c17 demo_histogram.c histogram.c -o demo_histogram
 
-wordlengths: wordlengths.c histogram.c
-	gcc -std=c17 wordlengths.c histogram.c -o wordlengths
+wordlengths: wordlengths.c histogram.c utils.o
+	gcc -std=c17 wordlengths.c histogram.c utils.o -o wordlengths
 
-anagram: anagram.c histogram.c wordlengths.c
-	gcc -std=c17 anagram.c histogram.c wordlengths.c -o anagram
+demo_wordlengths: demo_wordlengths.c wordlengths.c histogram.c utils.o
+	gcc -std=c17 demo_wordlengths.c wordlengths.c histogram.c utils.o -o demo_wordlengths
 
-patience: patience.c anagram.c histogram.c wordlengths.c shuffle.c
-	gcc -std=c17 patience.c anagram.c histogram.c wordlengths.c shuffle.c -lgsl -lgslcblas -lm -o patience
+anagram: anagram.c histogram.c utils.o
+	gcc -std=c17 anagram.c histogram.c utils.o -o anagram
 
-demo_anagram: demo_anagram.c anagram.c histogram.c wordlengths.c
-	gcc -std=c17 demo_anagram.c anagram.c histogram.c wordlengths.c -o demo_anagram
+patience: patience.c histogram.c shuffle.c utils.o
+	gcc -std=c17 -o patience patience.c histogram.c shuffle.o utils.o -I/opt/homebrew/include -Wl,-rpath,/opt/homebrew/lib /opt/homebrew/lib/libgsl.dylib /opt/homebrew/lib/libgslcblas.dylib -lm
 
-demo_patience: demo_patience.c patience.c anagram.c histogram.c wordlengths.c shuffle.c
-	gcc -std=c17 demo_patience.c patience.c anagram.c histogram.c wordlengths.c shuffle.c -lgsl -lgslcblas -lm -o demo_patience
+demo_anagram: demo_anagram.c anagram.c histogram.c utils.o
+	gcc -std=c17 demo_anagram.c anagram.c histogram.c utils.o -o demo_anagram
+
+pstatistics: pstatistics.c patience.c histogram.c shuffle.c utils.o
+	gcc -std=c17 -o pstatistics pstatistics.c patience.c anagram.c histogram.c wordlengths.c shuffle.c utils.o -I/opt/homebrew/include -Wl,-rpath,/opt/homebrew/lib /opt/homebrew/lib/libgsl.dylib /opt/homebrew/lib/libgslcblas.dylib -lm

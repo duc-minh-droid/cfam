@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// ✅ Structs for the linked list representation of anagrams
 typedef struct SecondaryListNode {
     char *word;
     struct SecondaryListNode *next;
@@ -17,7 +16,6 @@ typedef struct PrimaryListNode {
     int group_size;
 } nodePrimary;
 
-// ✅ Function Declarations
 
 // Creates a new primary node for storing an anagram group
 nodePrimary *create_node_primary(char *word);
@@ -42,9 +40,6 @@ int getPrimaryListSize(nodePrimary *head);
 
 // Processes the primary linked list to generate histogram data
 void process(nodePrimary *head, int **x, double **H, int *n);
-
-// Contains function to check if a number exists in an array
-int contains(int *x, int num, int *n);
 
 // Finds the index of a number in an array
 int get_index(int *x, int num, int n);
