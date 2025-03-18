@@ -259,36 +259,38 @@ int *many_plays(int n) {
 }
 
 /**
- * Gets indices with nonzero frequency from results.
- * @param results Frequency array.
- * @param num_labels Pointer to store number of labels.
- * @return Array of labels (cards left).
+ * Gets all possible indices (0 to 52) for the histogram.
+ * @param num_labels Pointer to store the number of labels (always 53).
+ * @return Array of labels (0 to 52).
  */
-int *get_labels(int *results, int *num_labels) {
-    *num_labels = 0;
-    for (int i = 0; i <= 52; i++) if (results[i] > 0) (*num_labels)++;
+int *get_labels(int *num_labels) {
+    *num_labels = 53; // 0 to 52 inclusive
     int *labels = malloc(*num_labels * sizeof(int));
-    if (!labels) { perror("Memory allocation failed for labels"); exit(1); }
-    int index = 0;
-    for (int i = 0; i <= 52; i++) if (results[i] > 0) labels[index++] = i;
+    if (!labels) { 
+        perror("Memory allocation failed for labels"); 
+        exit(1); 
+    }
+    for (int i = 0; i < *num_labels; i++) {
+        labels[i] = i;
+    }
     return labels;
 }
 
 /**
- * Calculates percentages from frequencies.
+ * Calculates percentages from frequencies for all possible cards left (0 to 52).
  * @param results Frequency array.
  * @param num_games Total games played.
- * @param num_labels Number of nonzero frequencies.
- * @return Array of percentages.
+ * @param num_labels Number of labels (53).
+ * @return Array of percentages for each possible number of cards left.
  */
 double *get_percentages(int *results, int num_games, int num_labels) {
     double *percentages = malloc(num_labels * sizeof(double));
-    if (!percentages) { perror("Memory allocation failed for percentages"); exit(1); }
-    int index = 0;
-    for (int i = 0; i <= 52; i++) {
-        if (results[i] > 0) {
-            percentages[index++] = (results[i] * 100.0) / num_games;
-        }
-    };
+    if (!percentages) { 
+        perror("Memory allocation failed for percentages"); 
+        exit(1); 
+    }
+    for (int i = 0; i < num_labels; i++) {
+        percentages[i] = (results[i] * 100.0) / num_games;
+    }
     return percentages;
 }

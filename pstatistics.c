@@ -6,28 +6,45 @@
 
 int main()
 {
-    int n = 10000;
-    int num_labels = 0;
-    int *matches = many_plays(n);
+    int n = 10000;              // Number of simulations
+    int num_labels = 53;        // Fixed to include all possibilities: 0 to 52 cards left
+    int *matches = many_plays(n);  // Simulate n games and get frequency of cards left
 
-    int *labels = get_labels(matches, &num_labels);
-    double *percentages = get_percentages(matches, n, num_labels);
+    // Allocate and populate labels array with all possible outcomes (0 to 52)
+    int *labels = malloc(num_labels * sizeof(int));
+    if (!labels) {
+        perror("Memory allocation failed for labels");
+        exit(1);
+    }
+    for (int i = 0; i < num_labels; i++) {
+        labels[i] = i;      // Labels are 0, 1, 2, ..., 52
+    }
 
+    // Allocate and calculate percentages for all possible outcomes
+    double *percentages = malloc(num_labels * sizeof(double));
+    if (!percentages) {
+        perror("Memory allocation failed for percentages");
+        exit(1);
+    }
+    for (int i = 0; i < num_labels; i++) {
+        percentages[i] = (matches[i] * 100.0) / n;  // Percentage for each number of cards left
+    }
+
+    // Open file to write histogram
     FILE *fp = fopen("phistogram.txt", "w");
-    if (fp == NULL)
-    {
+    if (fp == NULL) {
         perror("Failed to open phistogram.txt");
         exit(1);
     }
 
-    // Save the current stdout, redirect stdout to fp,
-    // call histogram (which prints to stdout), then restore stdout.
+    // Redirect stdout to file, print histogram, and restore stdout
     FILE *old_stdout = stdout;
     stdout = fp;
-    histogram(labels, percentages, num_labels, 30);
+    histogram(labels, percentages, num_labels, 30);  // Generate histogram with width 30
     stdout = old_stdout;
     fclose(fp);
 
+    // Free allocated memory
     free(labels);
     free(percentages);
     free(matches);

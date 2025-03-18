@@ -51,10 +51,6 @@ void initialize_game(Deck* deck, Pile** head, Pile** tail);
 // Counts the number of piles.
 int count_piles(Pile *head);
 
-// Prints the top card of each pile.
-// If verbose is non-zero, prints with additional formatting.
-void print_piles(Pile* head, int verbose);
-
 // Plays one game of patience.
 // Returns the number of cards remaining in the deck (0 if the deck is empty).
 int play(Deck* deck, int verbose);
@@ -64,9 +60,9 @@ int* many_plays(int n);
 
 // From the results array, extracts and returns an array of labels (remaining cards counts)
 // and updates num_labels with the number of labels.
-int* get_labels(int* results, int* num_labels);
+int *get_labels(int *num_labels);
 
 // Computes and returns an array of percentages for each label based on num_games.
-double* get_percentages(int* results, int num_games, int num_labels);
+double *get_percentages(int *results, int num_games, int num_labels);
 
 #endif // PATIENCE_H
