@@ -52,16 +52,13 @@ int get_max_width(int *x, int n) {
  * @param width Maximum bar width.
  */
 void histogram(int *x, double *y, int n, int width) {
+    double max = find_max(y, n);
     int field_width = get_max_width(x, n);
     for (int i = 0; i < n; i++) {
-        printf("%*d | ", field_width, x[i]);
-        int stars = (int)(y[i] * width / 10.0);
-        if (stars > width) stars = width;
-        if (y[i] > 0 && stars == 0) stars = 1;
-        for (int j = 0; j < stars; j++) {
-            printf("*");
-        }
-        printf(" %.2f%%\n", y[i]);
+        printf("%*d ", field_width, x[i]);  // Align index
+        int stars = find_star(y[i], width, max);
+        for (int j = 0; j < stars; j++) printf("*");
+        printf("    %g\n", y[i]);
     }
 }
 

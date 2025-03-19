@@ -3,6 +3,8 @@
 #include "patience.h"
 #include "shuffle.h"
 #include "histogram.h"
+#include <unistd.h>
+#include <fcntl.h>
 
 int main()
 {
@@ -31,20 +33,30 @@ int main()
         percentages[i] = (matches[i] * 100.0) / n;  // Percentage for each number of cards left
     }
 
-    // Open file to write histogram
-    FILE *fp = fopen("phistogram.txt", "w");
-    if (fp == NULL) {
-        perror("Failed to open phistogram.txt");
-        exit(1);
-    }
+    // Save current stdout file descriptor
+int saved_stdout = dup(fileno(stdout));
+if (saved_stdout == -1) {
+    perror("dup failed");
+    exit(1);
+}
 
-    // Redirect stdout to file, print histogram, and restore stdout
-    FILE *old_stdout = stdout;
-    stdout = fp;
-    histogram(labels, percentages, num_labels, 50);  
-    fflush(stdout);
-    stdout = old_stdout;
-    fclose(fp);
+// Redirect stdout to the file
+FILE *fp = freopen("phistogram.txt", "w", stdout);
+if (fp == NULL) {
+    perror("freopen failed");
+    exit(1);
+}
+
+// Now histogram prints to phistogram.txt
+histogram(labels, percentages, num_labels, 50);
+fflush(stdout);
+
+// Restore original stdout
+if (dup2(saved_stdout, fileno(stdout)) == -1) {
+    perror("dup2 failed");
+    exit(1);
+}
+close(saved_stdout);
 
     // Free allocated memory
     free(labels);
