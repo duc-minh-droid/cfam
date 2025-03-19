@@ -8,6 +8,7 @@ int main()
 {
     int n = 10000;              // Number of simulations
     int num_labels = 53;        // Fixed to include all possibilities: 0 to 52 cards left
+    fflush(stdout);
     int *matches = many_plays(n);  // Simulate n games and get frequency of cards left
 
     // Allocate and populate labels array with all possible outcomes (0 to 52)
