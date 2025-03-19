@@ -135,7 +135,6 @@ Deck initialize_deck() {
     for (int i = 0; i < 52; i++) {
         deck.cards[i] = (i % 13) + 1;
     }
-    shuffle(deck.cards, 52, -1);
     return deck;
 }
 
@@ -202,9 +201,15 @@ int play(Deck *deck, int verbose) {
             if (jqk_count == 3) {
                 if (verbose) {
                     int available = 52 - deck->top;
-                    snprintf(annotation, sizeof(annotation),
-                             available < 3 ? "J, Q, K visible, but %s" : "J, Q, K visible; will cover with %d, %d, %d",
-                             available ? "not enough cards" : "no cards left", deck->cards[deck->top], deck->cards[deck->top + 1], deck->cards[deck->top + 2]);
+                    if (available < 3) {
+                        snprintf(annotation, sizeof(annotation), 
+                                 "J, Q, K visible, but %s", 
+                                 available ? "not enough cards" : "no cards left");
+                    } else {
+                        snprintf(annotation, sizeof(annotation), 
+                                 "J, Q, K visible; will cover with %d, %d, %d", 
+                                 deck->cards[deck->top], deck->cards[deck->top + 1], deck->cards[deck->top + 2]);
+                    }
                 }
                 print_piles_verbose(head, annotation, verbose);
                 cover_cards(jqk_piles, 3, deck, verbose);
@@ -249,8 +254,11 @@ int play(Deck *deck, int verbose) {
  */
 int *many_plays(int n) {
     int *remaining = calloc(53, sizeof(int));
+    int seed = -1;
     for (int i = 0; i < n; i++) {
         Deck deck = initialize_deck();
+        shuffle(deck.cards, 52, seed);
+        seed = 0;
         int left = play(&deck, 1); // Verbose on for demo
         remaining[left]++;
         printf("\n");

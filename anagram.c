@@ -60,15 +60,8 @@ nodePrimary *create_node_primary(char *word) {
  * @param word Original word to add.
  */
 void push_word(nodePrimary **head, char *sorted_key, char *word) {
-    clock_t start_time = clock();
-    static int calls = 0;
-    static double total_time = 0.0;
-    static int total_steps = 0;
-    calls++;
-
     nodePrimary *cur = *head, *prev = NULL;
     size_t key_len = strlen(sorted_key);
-    int step_count = 0;
 
     // Find insertion point (sorted by length, then lexicographically)
     while (cur) {
@@ -77,9 +70,7 @@ void push_word(nodePrimary **head, char *sorted_key, char *word) {
         if (cmp >= 0) break;
         prev = cur;
         cur = cur->next;
-        step_count++;
     }
-    total_steps += step_count;
 
     if (cur && strcmp(cur->sorted_key, sorted_key) == 0) {
         // Add to existing group
@@ -98,15 +89,6 @@ void push_word(nodePrimary **head, char *sorted_key, char *word) {
         new_group->words->word = strdup(word);
         new_group->words->next = NULL;
         if (prev) prev->next = new_group; else *head = new_group;
-    }
-
-    // Timing stats
-    clock_t end_time = clock();
-    total_time += (double)(end_time - start_time) / CLOCKS_PER_SEC;
-    if (calls % 10000 == 0) {
-        printf("TIMING: Processed %d words in %.2f seconds (avg: %.6f seconds/word)\n", 
-               calls, total_time, total_time / calls);
-        printf("TIMING: Average traversal steps: %.2f\n", (double)total_steps / calls);
     }
 }
 
@@ -155,7 +137,6 @@ void print_list(node *head) {
  * @return Sorted string, dynamically allocated.
  */
 char *sorted(char *word) {
-    clock_t start_time = clock();
     int count[26] = {0}, sanitized_len = 0;
 
     // Count alphabetic characters
@@ -174,15 +155,6 @@ char *sorted(char *word) {
         while (count[i]--) sorted_word[pos++] = 'a' + i;
     sorted_word[pos] = '\0';
 
-    // Timing stats
-    clock_t end_time = clock();
-    static int sort_calls = 0;
-    static double total_time = 0.0;
-    total_time += (double)(end_time - start_time) / CLOCKS_PER_SEC;
-    if (++sort_calls % 10000 == 0) {
-        printf("TIMING: Sorted %d words in %.2f seconds (avg: %.6f seconds/word)\n", 
-                sort_calls, total_time, total_time / (double)sort_calls);
-    }
     return sorted_word;
 }
 
