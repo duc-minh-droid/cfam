@@ -1,10 +1,11 @@
 # Compiler and flags
 CC = gcc
 CFLAGS = -std=c99
-GSL_INCLUDE = -I/opt/homebrew/include
-GSL_RPATH = -Wl,-rpath,/opt/homebrew/lib
-GSL_LIBS = /opt/homebrew/lib/libgsl.dylib /opt/homebrew/lib/libgslcblas.dylib
 MATH_LIB = -lm
+
+# Use pkg-config for GSL
+GSL_CFLAGS = $(shell pkg-config --cflags gsl)
+GSL_LIBS = $(shell pkg-config --libs gsl)
 
 # List of all targets
 all: demo_histogram wordlengths pstatistics anaquery
@@ -23,10 +24,10 @@ anagram.o: anagram.c anagram.h
 	$(CC) $(CFLAGS) -c anagram.c -o anagram.o
 
 patience.o: patience.c
-	$(CC) $(CFLAGS) $(GSL_INCLUDE) -c patience.c -o patience.o
+	$(CC) $(CFLAGS) $(GSL_CFLAGS) -c patience.c -o patience.o
 
 pstatistics.o: pstatistics.c
-	$(CC) $(CFLAGS) $(GSL_INCLUDE) -c pstatistics.c -o pstatistics.o
+	$(CC) $(CFLAGS) $(GSL_CFLAGS) -c pstatistics.c -o pstatistics.o
 
 histogram.o: histogram.c
 	$(CC) $(CFLAGS) -c histogram.c -o histogram.o
@@ -42,11 +43,11 @@ wordlengths: wordlengths.o histogram.o utils.o
 	$(CC) $(CFLAGS) wordlengths.o histogram.o utils.o -o wordlengths $(MATH_LIB)
 
 pstatistics: pstatistics.o patience.o anagram.o histogram.o shuffle.o utils.o
-	$(CC) $(CFLAGS) pstatistics.o patience.o anagram.o histogram.o shuffle.o utils.o $(GSL_RPATH) $(GSL_LIBS) $(MATH_LIB) -o pstatistics
+	$(CC) $(CFLAGS) pstatistics.o patience.o anagram.o histogram.o shuffle.o utils.o -o pstatistics $(GSL_LIBS) $(MATH_LIB)
 
 anaquery: anaquery.o utils.o anagram.o
 	$(CC) $(CFLAGS) anaquery.o utils.o anagram.o -o anaquery
 
 # Clean up generated files
 clean:
-	rm -f *.o demo_histogram wordlengths anagram pstatistics anaquery
+	rm -f *.o demo_histogram wordlengths pstatistics anaquery
