@@ -39,7 +39,7 @@ demo_histogram: demo_histogram.c histogram.o
 	$(CC) $(CFLAGS) demo_histogram.c histogram.o -o demo_histogram $(MATH_LIB)
 
 wordlengths: wordlengths.o histogram.o utils.o
-	$(CC) $(CFLAGS) wordlengths.o histogram.o utils.o -o wordlengths
+	$(CC) $(CFLAGS) wordlengths.o histogram.o utils.o -o wordlengths $(MATH_LIB)
 
 pstatistics: pstatistics.o patience.o anagram.o histogram.o shuffle.o utils.o
 	$(CC) $(CFLAGS) pstatistics.o patience.o anagram.o histogram.o shuffle.o utils.o $(GSL_RPATH) $(GSL_LIBS) $(MATH_LIB) -o pstatistics
