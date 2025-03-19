@@ -46,7 +46,7 @@ pstatistics: pstatistics.o patience.o anagram.o histogram.o shuffle.o utils.o
 	$(CC) $(CFLAGS) pstatistics.o patience.o anagram.o histogram.o shuffle.o utils.o -o pstatistics $(GSL_LIBS) $(MATH_LIB)
 
 anaquery: anaquery.o utils.o anagram.o
-	$(CC) $(CFLAGS) anaquery.o utils.o anagram.o -o anaquery
+	$(CC) $(CFLAGS) anaquery.o utils.o anagram.o -o anaquery $(MATH_LIB)
 
 # Clean up generated files
 clean:
