@@ -40,7 +40,7 @@ int main()
     // Redirect stdout to file, print histogram, and restore stdout
     FILE *old_stdout = stdout;
     stdout = fp;
-    histogram(labels, percentages, num_labels, 30);  // Generate histogram with width 30
+    histogram(labels, percentages, num_labels, 50);  // Generate histogram with width 30
     stdout = old_stdout;
     fclose(fp);
 
