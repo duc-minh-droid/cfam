@@ -12,4 +12,4 @@ int find_star(double num, int width, double max);
 void histogram(int *x, double *y, int n, int width);
 int *histogram_lengths(char **strings, int n);
 
-#endif // HISTOGRAM_H
+#endif 

@@ -11,11 +11,12 @@
 #include "utils.h"
 
 /**
- * Prints the current state of piles with an optional annotation.
- * Cards are printed in a width of 3; annotations (if verbose) start at column 30.
- * @param head Pointer to the pile list.
- * @param action Annotation message (or empty string).
- * @param verbose If 1, print annotation; if 0, print state only.
+ * Displays the current state of all piles, with an optional note about the next action.
+ * Each card takes up 3 spaces for neat alignment. If verbose mode is on, an annotation
+ * (like "covering cards") appears starting at column 30 for readability.
+ * @param head Pointer to the start of the pile list.
+ * @param action Message to show as an annotation (ignored if empty or verbose is off).
+ * @param verbose If 1, include the annotation; if 0, just show the pile state.
  */
 static void print_piles_verbose(Pile *head, const char *action, int verbose) {
     int col = 0;
@@ -23,30 +24,32 @@ static void print_piles_verbose(Pile *head, const char *action, int verbose) {
         col += printf("%3d", cur->top->value); // Print each card, track column width
     }
     if (verbose && action && action[0] != '\0') {
-        int padding = (30 - col) < 1 ? 1 : (30 - col); // Pad to column 30 or at least 1 space
+        int padding = (30 - col) < 1 ? 1 : (30 - col); // Ensure at least 1 space before annotation
         printf("%*s%s", padding, "", action);
     }
     printf("\n");
 }
 
 /**
- * Draws a card from the deck.
- * @param deck Pointer to the deck.
- * @return Card value, or -1 if deck is empty.
+ * Pulls the next card from the deck, keeping track of the current position.
+ * The deck starts at index 0, and top moves up as cards are drawn.
+ * @param deck Pointer to the deck structure.
+ * @return The value of the drawn card, or -1 if the deck is out of cards.
  */
 int draw_from_deck(Deck *deck) {
     if (deck->top >= 52) {
         printf("Error: No more cards in the deck!\n");
         return -1;
     }
-    return deck->cards[deck->top++];
+    return deck->cards[deck->top++]; // Return card and increment position
 }
 
 /**
- * Adds a new pile with a given card to the list.
- * @param head Pointer to the head of the pile list.
- * @param tail Pointer to the tail of the pile list.
- * @param card Card value for the new pile.
+ * Creates a new pile with a single card and adds it to the end of the pile list.
+ * Updates both head and tail pointers to keep the list linked properly.
+ * @param head Pointer to the start of the pile list (updated if list was empty).
+ * @param tail Pointer to the end of the pile list (updated to new pile).
+ * @param card The value of the card to start the new pile with.
  */
 void add_pile(Pile **head, Pile **tail, int card) {
     Pile *new_pile = malloc(sizeof(Pile));
@@ -56,69 +59,72 @@ void add_pile(Pile **head, Pile **tail, int card) {
     new_pile->top->value = card;
     new_pile->top->next = NULL;
     new_pile->next = NULL;
-    if (!*head) { *head = *tail = new_pile; }
-    else { (*tail)->next = new_pile; *tail = new_pile; }
+    if (!*head) { *head = *tail = new_pile; } // First pile sets both head and tail
+    else { (*tail)->next = new_pile; *tail = new_pile; } // Add to end and update tail
 }
 
 /**
- * Finds pairs of piles where top cards add to 11.
- * @param visible_piles Pointer to the pile list.
- * @param num_piles_to_cover Number of piles in the returned array.
- * @return Array of pile pointers (2 per pair).
+ * Looks for pairs of piles where the top cards add up to 11 (e.g., 6 and 5).
+ * Uses a hash table to efficiently find matches as it scans the piles.
+ * @param visible_piles Pointer to the start of the pile list.
+ * @param num_piles_to_cover Pointer to store the number of piles in the returned array.
+ * @return Array of pile pointers (two per pair found), which will need covering.
  */
 Pile **add_to_11(Pile *visible_piles, int *num_piles_to_cover) {
-    Pile *hash[14] = {NULL};
-    Pile **piles_to_cover = malloc(sizeof(Pile *) * 18); // Max 9 pairs
+    Pile *hash[14] = {NULL}; // Hash table for card values 1-13 (0 unused)
+    Pile **piles_to_cover = malloc(sizeof(Pile *) * 18); // Max 9 pairs possible with 9 piles
     *num_piles_to_cover = 0;
     for (Pile *cur = visible_piles; cur; cur = cur->next) {
         int val = cur->top->value;
-        int needed = 11 - val;
-        if (needed > 0 && needed <= 10 && hash[needed]) {
-            piles_to_cover[(*num_piles_to_cover)++] = hash[needed];
-            piles_to_cover[(*num_piles_to_cover)++] = cur;
-            hash[needed] = NULL;
+        int needed = 11 - val; // What value pairs with this to make 11
+        if (needed > 0 && needed <= 10 && hash[needed]) { // Found a pair
+            piles_to_cover[(*num_piles_to_cover)++] = hash[needed]; // Add first pile
+            piles_to_cover[(*num_piles_to_cover)++] = cur;          // Add current pile
+            hash[needed] = NULL; // Clear the match from hash
         } else {
-            hash[val] = cur;
+            hash[val] = cur; // Store this pile in hash for potential future match
         }
     }
     return piles_to_cover;
 }
 
 /**
- * Checks for piles with J (11), Q (12), K (13).
- * @param head Pointer to the pile list.
- * @param count Number of piles found (0 or 3).
- * @return Array of 3 pile pointers if JQK found, else NULL.
+ * Scans the pile list for a Jack (11), Queen (12), and King (13) to remove as a set.
+ * Only takes the first occurrence of each value if multiple exist.
+ * @param head Pointer to the start of the pile list.
+ * @param count Pointer to store the number of piles found (0 or 3).
+ * @return Array of 3 pile pointers if J, Q, K are found; NULL otherwise.
  */
 Pile **jqk(Pile *head, int *count) {
     Pile *j = NULL, *q = NULL, *k = NULL;
     for (Pile *cur = head; cur; cur = cur->next) {
-        if (cur->top->value == 11 && !j) j = cur;
-        if (cur->top->value == 12 && !q) q = cur;
-        if (cur->top->value == 13 && !k) k = cur;
+        if (cur->top->value == 11 && !j) j = cur; // Jack
+        if (cur->top->value == 12 && !q) q = cur; // Queen
+        if (cur->top->value == 13 && !k) k = cur; // King
     }
-    if (j && q && k) {
+    if (j && q && k) { // All three found
         Pile **result = malloc(3 * sizeof(Pile *));
         result[0] = j; result[1] = q; result[2] = k;
         *count = 3;
         return result;
     }
-    *count = 0;
+    *count = 0; // No complete set found
     return NULL;
 }
 
 /**
- * Replaces top cards of given piles with new cards from the deck.
- * @param piles Array of piles to cover.
- * @param count Number of piles to cover.
- * @param deck Pointer to the deck.
- * @param verbose If 1, print details (unused here).
+ * Replaces the top cards of specified piles with new ones from the deck.
+ * Frees the old cards and adds fresh ones, but only if deck has cards left.
+ * @param piles Array of piles whose top cards will be replaced.
+ * @param count Number of piles to process.
+ * @param deck Pointer to the deck to draw from.
+ * @param verbose If 1, print details (not used here but kept for consistency).
  */
 void cover_cards(Pile **piles, int count, Deck *deck, int verbose) {
     if (!piles) return;
     for (int i = 0; i < count && deck->top < 52; i++) {
-        int new_card = deck->cards[deck->top++];
-        free(piles[i]->top);
+        int new_card = deck->cards[deck->top++]; // Draw next card
+        free(piles[i]->top); // Remove old card
         piles[i]->top = malloc(sizeof(CardNode));
         piles[i]->top->value = new_card;
         piles[i]->top->next = NULL;
@@ -126,34 +132,37 @@ void cover_cards(Pile **piles, int count, Deck *deck, int verbose) {
 }
 
 /**
- * Creates a shuffled deck of 52 cards (1-13, 4 suits).
- * @return Initialized deck.
+ * Sets up a new deck with 52 cards (1-13 repeated 4 times for suits).
+ * Cards aren’t shuffled here—shuffle happens elsewhere if needed.
+ * @return A fresh Deck structure with all 52 cards.
  */
 Deck initialize_deck() {
     Deck deck;
-    deck.top = 0;
+    deck.top = 0; // Start at the beginning
     for (int i = 0; i < 52; i++) {
-        deck.cards[i] = (i % 13) + 1;
+        deck.cards[i] = (i % 13) + 1; // Values 1-13, cycling every 13 cards
     }
     return deck;
 }
 
 /**
- * Sets up the game with two initial piles.
- * @param deck Pointer to the deck.
- * @param head Pointer to the head of the pile list.
- * @param tail Pointer to the tail of the pile list.
+ * Starts the game by creating two initial piles from the deck.
+ * Draws two cards and sets up the linked list with head and tail pointers.
+ * @param deck Pointer to the deck to draw from.
+ * @param head Pointer to the start of the pile list (will be set).
+ * @param tail Pointer to the end of the pile list (will be set).
  */
 void initialize_game(Deck *deck, Pile **head, Pile **tail) {
-    deck->top = 0;
-    add_pile(head, tail, draw_from_deck(deck));
-    add_pile(head, tail, draw_from_deck(deck));
+    deck->top = 0; // Reset deck position
+    add_pile(head, tail, draw_from_deck(deck)); // First pile
+    add_pile(head, tail, draw_from_deck(deck)); // Second pile
 }
 
 /**
- * Counts the number of piles in the list.
- * @param head Pointer to the pile list.
- * @return Number of piles.
+ * Counts how many piles are currently in the game.
+ * Simply walks the list and tallies each one.
+ * @param head Pointer to the start of the pile list.
+ * @return Total number of piles.
  */
 int count_piles(Pile *head) {
     int count = 0;
@@ -162,24 +171,27 @@ int count_piles(Pile *head) {
 }
 
 /**
- * Runs the game loop, checking for pairs or JQK, covering cards, or adding piles.
- * @param deck Pointer to the deck.
- * @param verbose If 1, print annotations; if 0, print state only.
- * @return Cards left in deck (0 if exhausted).
+ * Runs the main game loop for Patience, following the rules:
+ * - Cover pairs adding to 11 or JQK sets with new cards.
+ * - Add a new pile if no matches are found.
+ * Stops when 9 piles are reached or deck runs out.
+ * @param deck Pointer to the deck to play with.
+ * @param verbose If 1, show annotations for each move; if 0, just pile states.
+ * @return Number of cards left in the deck (0 if all used).
  */
 int play(Deck *deck, int verbose) {
     Pile *head = NULL, *tail = NULL;
-    initialize_game(deck, &head, &tail);
+    initialize_game(deck, &head, &tail); // Set up starting piles
 
-    while (count_piles(head) < 9 && deck->top < 52) {
-        char annotation[256] = "";
-        int action_taken = 0;
+    while (count_piles(head) < 9 && deck->top < 52) { // Loop until 9 piles or deck empty
+        char annotation[256] = ""; // Buffer for move descriptions
+        int action_taken = 0; // Track if we made a move this turn
 
-        // Check for pairs adding to 11
+        // First, check for pairs that add to 11
         int pair_count = 0;
         Pile **pairs = add_to_11(head, &pair_count);
         if (pair_count > 0) {
-            if (verbose) {
+            if (verbose) { // Prepare a helpful note about the pair
                 int v1 = pairs[0]->top->value, v2 = pairs[1]->top->value;
                 int available = 52 - deck->top;
                 if (available < 2) {
@@ -191,15 +203,15 @@ int play(Deck *deck, int verbose) {
                 }
             }
             print_piles_verbose(head, annotation, verbose);
-            cover_cards(pairs, pair_count, deck, verbose);
+            cover_cards(pairs, pair_count, deck, verbose); // Replace matched cards
             free(pairs);
             action_taken = 1;
         } else {
-            // Check for JQK
+            // If no pairs, check for JQK set
             int jqk_count = 0;
             Pile **jqk_piles = jqk(head, &jqk_count);
             if (jqk_count == 3) {
-                if (verbose) {
+                if (verbose) { // Note about JQK removal
                     int available = 52 - deck->top;
                     if (available < 3) {
                         snprintf(annotation, sizeof(annotation), 
@@ -212,13 +224,13 @@ int play(Deck *deck, int verbose) {
                     }
                 }
                 print_piles_verbose(head, annotation, verbose);
-                cover_cards(jqk_piles, 3, deck, verbose);
+                cover_cards(jqk_piles, 3, deck, verbose); // Replace JQK cards
                 free(jqk_piles);
                 action_taken = 1;
             }
         }
 
-        // If no action, add a new pile
+        // If no matches, add a new pile from the deck
         if (!action_taken && deck->top < 52) {
             int new_card = deck->cards[deck->top];
             if (verbose) snprintf(annotation, sizeof(annotation), "Cards don't add to 11; will start a new pile with %d", new_card);
@@ -227,7 +239,7 @@ int play(Deck *deck, int verbose) {
         }
     }
 
-    // Print final state
+    // Show the final game state with a summary
     if (verbose) {
         char final_annotation[256];
         snprintf(final_annotation, sizeof(final_annotation),
@@ -235,7 +247,7 @@ int play(Deck *deck, int verbose) {
         print_piles_verbose(head, final_annotation, verbose);
     }
 
-    // Clean up
+    // Clean up all piles and return remaining card count
     int result = deck->top == 52 ? 0 : (52 - deck->top);
     for (Pile *cur = head; cur; ) {
         Pile *next = cur->next;
@@ -248,48 +260,51 @@ int play(Deck *deck, int verbose) {
 }
 
 /**
- * Simulates n games and tracks frequency of cards left.
- * @param n Number of games to play.
- * @return Array of frequencies indexed by cards left.
+ * Plays the game multiple times and counts how often each number of cards remains.
+ * Each game starts with a shuffled deck, and results are tallied in an array.
+ * @param n Number of games to simulate.
+ * @return Array where index is cards left, value is frequency of that outcome.
  */
 int *many_plays(int n) {
-    int *remaining = calloc(53, sizeof(int));
-    int seed = -1;
+    int *remaining = calloc(53, sizeof(int)); // Space for 0-52 cards left
+    int seed = -1; // Start with random shuffle, then use fixed seed
     for (int i = 0; i < n; i++) {
         Deck deck = initialize_deck();
-        shuffle(deck.cards, 52, seed);
-        seed = 0;
-        int left = play(&deck, 1); // Verbose on for demo
-        remaining[left]++;
+        shuffle(deck.cards, 52, seed); // Shuffle (random first time, then repeatable)
+        seed = 0; // Fix seed after first game
+        int left = play(&deck, 1); // Play with verbose output
+        remaining[left]++; // Record how many cards were left
         printf("\n");
     }
     return remaining;
 }
 
 /**
- * Gets all possible indices (0 to 52) for the histogram.
- * @param num_labels Pointer to store the number of labels (always 53).
- * @return Array of labels (0 to 52).
+ * Creates an array of all possible outcomes (0 to 52 cards left) for histogram use.
+ * This ensures every possible result is represented, even if it didn’t occur.
+ * @param num_labels Pointer to store the total number of labels (always 53).
+ * @return Array with values 0 through 52.
  */
 int *get_labels(int *num_labels) {
-    *num_labels = 53; // 0 to 52 inclusive
+    *num_labels = 53; // Covers 0 to 52 cards left
     int *labels = malloc(*num_labels * sizeof(int));
     if (!labels) { 
         perror("Memory allocation failed for labels"); 
         exit(1); 
     }
     for (int i = 0; i < *num_labels; i++) {
-        labels[i] = i;
+        labels[i] = i; // Fill with 0, 1, 2, ..., 52
     }
     return labels;
 }
 
 /**
- * Calculates percentages from frequencies for all possible cards left (0 to 52).
- * @param results Frequency array.
- * @param num_games Total games played.
- * @param num_labels Number of labels (53).
- * @return Array of percentages for each possible number of cards left.
+ * Turns raw frequencies into percentages for each possible number of cards left.
+ * Divides each frequency by total games and multiplies by 100 for a percentage.
+ * @param results Array of frequencies from many_plays.
+ * @param num_games Total number of games simulated.
+ * @param num_labels Number of possible outcomes (53 for 0-52).
+ * @return Array of percentages corresponding to each outcome.
  */
 double *get_percentages(int *results, int num_games, int num_labels) {
     double *percentages = malloc(num_labels * sizeof(double));
@@ -298,7 +313,7 @@ double *get_percentages(int *results, int num_games, int num_labels) {
         exit(1); 
     }
     for (int i = 0; i < num_labels; i++) {
-        percentages[i] = (results[i] * 100.0) / num_games;
+        percentages[i] = (results[i] * 100.0) / num_games; // Convert to percentage
     }
     return percentages;
 }

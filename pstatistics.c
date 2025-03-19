@@ -34,29 +34,29 @@ int main()
     }
 
     // Save current stdout file descriptor
-int saved_stdout = dup(fileno(stdout));
-if (saved_stdout == -1) {
-    perror("dup failed");
-    exit(1);
-}
+    int saved_stdout = dup(fileno(stdout));
+    if (saved_stdout == -1) {
+        perror("dup failed");
+        exit(1);
+    }
 
-// Redirect stdout to the file
-FILE *fp = freopen("phistogram.txt", "w", stdout);
-if (fp == NULL) {
-    perror("freopen failed");
-    exit(1);
-}
+    // Redirect stdout to the file
+    FILE *fp = freopen("phistogram.txt", "w", stdout);
+    if (fp == NULL) {
+        perror("freopen failed");
+        exit(1);
+    }
 
-// Now histogram prints to phistogram.txt
-histogram(labels, percentages, num_labels, 50);
-fflush(stdout);
+    // Now histogram prints to phistogram.txt
+    histogram(labels, percentages, num_labels, 50);
+    fflush(stdout);
 
-// Restore original stdout
-if (dup2(saved_stdout, fileno(stdout)) == -1) {
-    perror("dup2 failed");
-    exit(1);
-}
-close(saved_stdout);
+    // Restore original stdout
+    if (dup2(saved_stdout, fileno(stdout)) == -1) {
+        perror("dup2 failed");
+        exit(1);
+    }
+    close(saved_stdout);
 
     // Free allocated memory
     free(labels);
