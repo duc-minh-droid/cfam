@@ -1,8 +1,26 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
 
-gsl_rng *shuffle(int *x, int n, int seed)
+/*
+ * Structure to hold a value to be shuffled and a random value that on which the values 
+ * will be sorted.   
+ */
+struct pair
+{
+    int value;
+    long rand;
+};
+
+int cmp(const void *a, const void *b)
+{
+    /* Compare pairs based on their random member */
+    struct pair *ap = (struct pair *)a;
+    struct pair *bp = (struct pair *)b;
+    return ap->rand - bp->rand;
+}
+
+void shuffle(int *x, int n, int seed)
 {
     /*
      * Shuffle the n elements of the integer array x in place.
@@ -20,55 +38,28 @@ gsl_rng *shuffle(int *x, int n, int seed)
      *        other calls. If seed is negative, the generator is initialised
      *        with the time so different random number sequences and therefore
      *        shuffles are produced each time the program is run.
-     *
-     * Returns
-     * -------
-     *
-     *  r : gsl_rng *r;  A pointer to the random number generator's internal 
-     *      state.  Can be passed to shuffle_free() to free the memory used 
-     *      when no longer requited. 
-     *
-     * Your program will need to be linked with -lgsl -lgslcblas -lm
-     * For example:
-     *
-     * gcc myprogram.c shuffle.o -lgsl -lgslcblas -lm
-     *
-     *
-     * This is just a convenient wrapper of the GSL gsl_ran_shuffle.
      */
 
-    const gsl_rng_type *T;
-    static gsl_rng *r = NULL;
+    int j;
+    struct pair pairs[n];
+  
+    /* Seed the random number generator */
+    if (seed < 0)
+        seed = time(NULL);
+    if (seed > 0)
+	srandom(seed);
 
-    if (r == NULL) {
-        /* Create a random number generator */
-        gsl_rng_env_setup();
-        if (seed < 0)
-            seed = time(NULL);
-        gsl_rng_default_seed = seed;
-
-        T = gsl_rng_default;
-        r = gsl_rng_alloc (T);
+    /* Build array of pairs */
+    for (j = 0; j < n; j++) {
+        pairs[j].value = x[j];
+        pairs[j].rand = random();
     }
 
-    gsl_ran_shuffle(r, x, n, sizeof(int));
-    return r;
+    /* Sort pairs array according to their rand element */
+    qsort(pairs, n, sizeof(struct pair), cmp);
+
+    /* Unpack values that are now in random order */
+    for (j = 0; j < n; j++)
+        x[j] = pairs[j].value;
+    return;
 }
-
-
-void free_shuffle(gsl_rng *r)
-{
-    /* 
-     *  Free the memeroy allocted by the suffle radnom number generator.
-     *  
-     *   Parameters
-     *   ----------
-     *
-     *   r : pointer to a gsl_rng structure returned by shuuffle().
-     */
-
-     free(r->state);
-     free(r);
-     return;
-}
-

@@ -15,7 +15,7 @@ int get_index(int *x, int num, int n) {
     return -1;
 }
 
-int get_file_size(char *file_path) {
+int get_file_size(const char *file_path) {
     int size = 0;
     FILE *fptr = fopen(file_path, "r");
     if (!fptr) {
@@ -42,7 +42,7 @@ int *get_indexes(double *H, int size) {
     return indexes;
 }
 
-char **read_txt_file(char *file_path, int size) {
+char **read_txt_file(const char *file_path, int size) {
     if (size <= 0) {
         fprintf(stderr, "Error: File is empty or invalid size.\n");
         return NULL;

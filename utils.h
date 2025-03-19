@@ -32,7 +32,7 @@ int get_index(int *x, int num, int n);
  * @param file_path Path to the file.
  * @return Number of lines, or -1 on error.
  */
-int get_file_size(char *file_path);
+int get_file_size(const char *file_path);
 
 /**
  * Reads a text file into an array of strings.
@@ -40,7 +40,7 @@ int get_file_size(char *file_path);
  * @param size Number of lines.
  * @return Array of strings, or NULL on error.
  */
-char **read_txt_file(char *file_path, int size);
+char **read_txt_file(const char *file_path, int size);
 
 /**
  * Frees an array of strings.

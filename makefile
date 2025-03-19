@@ -7,9 +7,12 @@ GSL_LIBS = /opt/homebrew/lib/libgsl.dylib /opt/homebrew/lib/libgslcblas.dylib
 MATH_LIB = -lm
 
 # List of all targets
-all: demo_histogram wordlengths anagram pstatistics anaquery
+all: demo_histogram wordlengths pstatistics anaquery
 
 # Object file rules
+shuffle.o: shuffle.c
+	$(CC) $(CFLAGS) -c shuffle.c -o shuffle.o
+
 utils.o: utils.c utils.h
 	$(CC) $(CFLAGS) -c utils.c -o utils.o
 
@@ -35,14 +38,11 @@ anaquery.o: anaquery.c utils.h anagram.h
 demo_histogram: demo_histogram.c histogram.o
 	$(CC) $(CFLAGS) demo_histogram.c histogram.o -o demo_histogram
 
-wordlengths: demo_wordlengths.c wordlengths.o histogram.o utils.o
-	$(CC) $(CFLAGS) demo_wordlengths.c wordlengths.o histogram.o utils.o -o wordlengths
+wordlengths: wordlengths.o histogram.o utils.o
+	$(CC) $(CFLAGS) wordlengths.o histogram.o utils.o -o wordlengths
 
-anagram: demo_anagram.c anagram.o histogram.o utils.o
-	$(CC) $(CFLAGS) demo_anagram.c anagram.o histogram.o utils.o -o anagram
-
-pstatistics: pstatistics.o patience.o anagram.o histogram.o wordlengths.o shuffle.o utils.o
-	$(CC) $(CFLAGS) pstatistics.o patience.o anagram.o histogram.o wordlengths.o shuffle.o utils.o $(GSL_RPATH) $(GSL_LIBS) $(MATH_LIB) -o pstatistics
+pstatistics: pstatistics.o patience.o anagram.o histogram.o shuffle.o utils.o
+	$(CC) $(CFLAGS) pstatistics.o patience.o anagram.o histogram.o shuffle.o utils.o $(GSL_RPATH) $(GSL_LIBS) $(MATH_LIB) -o pstatistics
 
 anaquery: anaquery.o utils.o anagram.o
 	$(CC) $(CFLAGS) anaquery.o utils.o anagram.o -o anaquery
