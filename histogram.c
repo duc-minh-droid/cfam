@@ -6,30 +6,6 @@
 #include <stdlib.h>
 
 /**
- * Computes the number of stars for a histogram bar.
- * @param num Current value.
- * @param width Maximum bar width.
- * @param max Maximum value in dataset.
- * @return Number of stars.
- */
-int find_star(double num, int width, double max) {
-    return (int)ceil((num / max) * width);
-}
-
-/**
- * Finds the maximum value in an array.
- * @param x Array of doubles.
- * @param n Number of elements.
- * @return Maximum value.
- */
-double find_max(double *x, int n) {
-    double max = -DBL_MAX;
-    for (int i = 0; i < n; i++)
-        if (x[i] > max) max = x[i];
-    return max;
-}
-
-/**
  * Computes the maximum width for printing integers.
  * @param x Array of integers.
  * @param n Number of elements.
@@ -52,13 +28,16 @@ int get_max_width(int *x, int n) {
  * @param width Maximum bar width.
  */
 void histogram(int *x, double *y, int n, int width) {
-    double max = find_max(y, n);
     int field_width = get_max_width(x, n);
     for (int i = 0; i < n; i++) {
-        printf("%*d ", field_width, x[i]);  // Align index
-        int stars = find_star(y[i], width, max);
-        for (int j = 0; j < stars; j++) printf("*");
-        printf("    %g\n", y[i]);
+        printf("%*d | ", field_width, x[i]);  // Align index
+        int stars = (int)(y[i] * width / 10.0); // 1 star per 0.2% (adjustable)
+        if (stars > width) stars = width; // Cap at max width
+        if (y[i] > 0 && stars == 0) stars = 1; // Ensure at least 1 star for non-zero
+        for (int j = 0; j < stars; j++) {
+            printf("*");
+        }
+        printf(" %.2f%%\n", y[i]);
     }
 }
 
